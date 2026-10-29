@@ -398,7 +398,9 @@ the description is the only thing agents see in listings). Create only if absent
 - computer-use/  description: "Control the real desktop and browser — screenshots,
   clicks, typing, app launch, websites, with safety and recovery rules."
   Body guidance: when to activate; screenshot-first workflow; click/type/scroll/
-  launch/switch; destructive-action consent rules; failure recovery (press Esc,
+  launch/switch; CLICKS ARE ATOMIC (see Phase 8 note) — pass the target straight to
+  Click/Type and never pair Move with Click/Type in one parallel batch of computer
+  input tools; destructive-action consent rules; failure recovery (press Esc,
   alt+f4 via keyboard, restart app); never disable security controls.
 - research-first/  "Official docs before code; verify names/versions; no invented APIs."
 - plan-and-execute/  "Multi-step work: recon, checklist with verifications, small
@@ -426,6 +428,21 @@ Add under `mcp.servers` ONLY what is missing, following the official MCP config 
    find the real, maintained repo, inspect it, install to a user path, then register
    the cli command you actually verified. NEVER paste a fake exe path. Skip this one
    if the user's OS or environment cannot support it — report the limitation.)
+   CLICK-ORDER PATCH (a real bug found in live use): injected clicks are atomic —
+   the server places the cursor and clicks at the target within ~5 ms — but the
+   visible AI-control ring indicator follows the cursor at only 20 FPS
+   (`_REFRESH_SECONDS = 0.05` in the installed package's
+   `windows_mcp/desktop/control_overlay.py`), so clicks LOOK like they fired before
+   the mouse moved; agents also batched `Move` + `Click` in parallel, amplifying it.
+   After installing the server: patch `_REFRESH_SECONDS` to `0.01` (note it in the
+   setup notes — upgrades overwrite local edits), restart the OpenCode service so
+   the change loads, and record in the computer-use skill that agents must pass the
+   target straight to Click/Type (no Move-then-Click) and issue computer input tools
+   sequentially, never in parallel batches. If the patched file lives elsewhere in
+   your install, locate it by searching for `_REFRESH_SECONDS`.
+   Do NOT reorder or double-click inside the server's input functions — the atomic
+   injection itself is correct; only the visual indicator and agent batching
+   behavior need the fix.
 3. Optional `blender` (only if the user has Blender): official prebuilt MCP server;
    requires the Blender-side add-on listening on its socket; document startup need.
 4. EXCLUDE any engine-specific MCP (in particular: do NOT add Roblox Studio or any
