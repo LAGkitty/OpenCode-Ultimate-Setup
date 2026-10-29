@@ -23,6 +23,12 @@ SAFETY RULES (non-negotiable)
 ================================================================================
 PHASE 0 — INSPECT THE ENVIRONMENT
 ================================================================================
+0. DETECT THE OS (uname -a / systeminfo / PowerShell systeminfo equivalent) and set
+   your platform strategy explicitly: agents, commands, skills, and all core team
+   logic are OS-neutral (plain Markdown + the opencode CLI); Windows-specific
+   pieces are: the `windows-dev-env` skill, PowerShell/cmd syntax, and the
+   Windows-MCP desktop-control server. On macOS/Linux those adapt or get skipped
+   (see Phases 7-8) — do NOT run Windows-specific commands on other OSes.
 1. `opencode --version` (note it; check docs match).
 2. Locate the config dir: `~/.config/opencode/` (check `$XDG_CONFIG_HOME` too).
 3. List existing: agents/, agents/ or agent/, commands/ or command/, skills/,
@@ -400,8 +406,10 @@ the description is the only thing agents see in listings). Create only if absent
   Body guidance: when to activate; screenshot-first workflow; click/type/scroll/
   launch/switch; CLICKS ARE ATOMIC (see Phase 8 note) — pass the target straight to
   Click/Type and never pair Move with Click/Type in one parallel batch of computer
-  input tools; destructive-action consent rules; failure recovery (press Esc,
-  alt+f4 via keyboard, restart app); never disable security controls.
+  input tools; destructive-action consent rules; failure recovery (cancel with
+  Escape, close the app via the OS-equivalent window-close chord, restart app);
+  never disable security controls. On macOS/Linux, adapt the skill's syntax to
+  that OS's desktop-control MCP instead of Windows conventions.
 - research-first/  "Official docs before code; verify names/versions; no invented APIs."
 - plan-and-execute/  "Multi-step work: recon, checklist with verifications, small
   verified increments, deliberate failure recovery, evidence-based close-out."
@@ -424,25 +432,33 @@ Add under `mcp.servers` ONLY what is missing, following the official MCP config 
    type local, command: node <npx-resolvable @playwright/mcp cli.js> --browser
    <the browser the user actually has> --timeout-action 10000. After adding,
    `opencode mcp list` must show connected; if it says needs-auth, report it.
-2. `computer` (desktop control; use the Windows-MCP community server on Windows —
-   find the real, maintained repo, inspect it, install to a user path, then register
-   the cli command you actually verified. NEVER paste a fake exe path. Skip this one
-   if the user's OS or environment cannot support it — report the limitation.)
-   CLICK-ORDER PATCH (a real bug found in live use): injected clicks are atomic —
-   the server places the cursor and clicks at the target within ~5 ms — but the
-   visible AI-control ring indicator follows the cursor at only 20 FPS
-   (`_REFRESH_SECONDS = 0.05` in the installed package's
-   `windows_mcp/desktop/control_overlay.py`), so clicks LOOK like they fired before
-   the mouse moved; agents also batched `Move` + `Click` in parallel, amplifying it.
-   After installing the server: patch `_REFRESH_SECONDS` to `0.01` (note it in the
-   setup notes — upgrades overwrite local edits), restart the OpenCode service so
-   the change loads, and record in the computer-use skill that agents must pass the
-   target straight to Click/Type (no Move-then-Click) and issue computer input tools
-   sequentially, never in parallel batches. If the patched file lives elsewhere in
-   your install, locate it by searching for `_REFRESH_SECONDS`.
-   Do NOT reorder or double-click inside the server's input functions — the atomic
-   injection itself is correct; only the visual indicator and agent batching
-   behavior need the fix.
+2. `computer` (desktop control) — OS-adaptive, never fake it:
+   - Windows: use the Windows-MCP community server — find the real, maintained
+     repo, inspect it, install to a user path, then register the cli command you
+     actually verified. NEVER paste a fake exe path.
+   - macOS/Linux: look for an OFFICIAL/maintained desktop-control MCP for that OS.
+     Only install one you can verify from a real source. If none exists or none
+     can be verified, SKIP desktop control, keep presenter `playwright` for web
+     work, and report the limitation honestly. Do not substitute an unverified
+     third-party tool.
+   - Windows-MCP only — CLICK-ORDER PATCH (a real bug found in live use): injected
+     clicks are atomic — the server places the cursor and clicks at the target
+     within ~5 ms — but the visible AI-control ring indicator follows the cursor at
+     only 20 FPS (`_REFRESH_SECONDS = 0.05` in the installed package's
+     `windows_mcp/desktop/control_overlay.py`), so clicks LOOK like they fired
+     before the mouse moved; agents also batched `Move` + `Click` in parallel,
+     amplifying it. After installing the server: patch `_REFRESH_SECONDS` to
+     `0.01` (note it in the setup notes — upgrades overwrite local edits), restart
+     the OpenCode service so the change loads, and record in the computer-use
+     skill that agents must pass the target straight to Click/Type (no
+     Move-then-Click) and issue computer input tools sequentially, never in
+     parallel batches. If the patched file lives elsewhere in your install,
+     locate it by searching for `_REFRESH_SECONDS`.
+     Do NOT reorder or double-click inside the server's input functions — the
+     atomic injection itself is correct; only the visual indicator and agent
+     batching behavior need the fix. Other desktop-control servers may have their
+     own quirks — apply the SAME agent-side rule (atomic clicks, sequential input
+     calls) regardless of server.
 3. Optional `blender` (only if the user has Blender): official prebuilt MCP server;
    requires the Blender-side add-on listening on its socket; document startup need.
 4. EXCLUDE any engine-specific MCP (in particular: do NOT add Roblox Studio or any
@@ -512,14 +528,16 @@ D. MODELS: the coordinator + at least one specialist + one -b fallback demonstra
 E. MCP: through an agent, call ONE harmless tool on ONE connected MCP server (e.g.
    playwright browser_navigate to example.com, report the title, close the browser).
    If no server is connected, report exactly why — do not fake it.
-F. END-TO-END: create a disposable test project in the scratch dir (a tiny Python
-   calculator with one intentional bug + a unittest file), then `opencode run
-   --agent team-lead` with a brief to: fix the bug with the implementer, run the
-   tests with the tester, verify with the reviewer. Then INDEPENDENTLY re-run the
-   test command yourself and diff the file. Budget: the fix phase should pass
-   without redundant re-verification (watch over-testing!). Clean up only what
-   this test created; remove the scratch project afterwards (leave a note if the
-   empty dir is service-locked).
+F. END-TO-END: create a disposable test project in the scratch dir in ANY language
+   actually available on this machine (Python preferred if installed; else
+   Node/Go/Rust/whatever the runner can execute — check first), with one intentional
+   bug + a matching test file, then `opencode run --agent team-lead` with a brief
+   to: fix the bug with the implementer, run the tests with the tester, verify with
+   the reviewer. Use the correct test command for the chosen language/runtime. Then
+   INDEPENDENTLY re-run the test command yourself and diff the file. Budget: the
+   fix phase should pass without redundant re-verification (watch over-testing!).
+   Clean up only what this test created; remove the scratch project afterwards
+   (leave a note if the empty dir is service-locked).
 
 If any test fails: capture the error, fix what is safely fixable, re-run that test.
 Cap: 2 repair attempts per test, then report the blocker precisely.
