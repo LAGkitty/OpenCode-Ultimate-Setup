@@ -410,9 +410,18 @@ the description is the only thing agents see in listings). Create only if absent
   driven — nearly no UIA tree, so verify with region screenshots + vision, read the
   keybinds screen once and log it, drive keyboard-first (hotkeys → menu walking →
   HUD coordinate clicks), sequential inputs with fixed waits between, emulate
-  key-holds as repeated presses at a measured cadence (no hold primitive), camera
-  look = mouse drag with explicit from_loc/duration, zoom = scroll at window
-  center, and NEVER automate gameplay in online/competitive/anti-cheat titles
+  key-holds as repeated presses at a measured cadence (no hold primitive); MOUSE
+  GESTURES IN GAMES (probe-verified): Click = teleport + button down + ZERO motion
+  + up (lowest-risk, the only way to act on a spot); Move (no drag) = pointer-only
+  sweep, buttons=0 — safe for positioning; Move drag:true = presses the LEFT button
+  and holds it during the ENTIRE sweep (games treat any button-held sweep as
+  camera-orbit/UI-drag, and the release clicks the endpoint) — NEVER use drag for
+  cursor positioning or "just moving the mouse"; reserve drag for gestures the
+  game itself requires to be held (one-shot probe first); no continuous button-
+  hold tool exists (right button can only be a full down+up click) — if a game's
+  look control needs a held button that can't be emulated, ask the user to bind
+  it to a key or look manually; zoom = scroll at window center, and NEVER automate
+  gameplay in online/competitive/anti-cheat titles
   (ToS/account-ban risk) — only single-player/offline/games the user owns; unsure
   means ask first; destructive-action consent rules; failure recovery (cancel with
   Escape, close the app via the OS-equivalent window-close chord, restart app);
