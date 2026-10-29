@@ -402,11 +402,19 @@ PHASE 7 — SKILLS (optional but recommended; skills/<id>/SKILL.md)
 Follow the official skills doc for file format (frontmatter: name + description —
 the description is the only thing agents see in listings). Create only if absent:
 - computer-use/  description: "Control the real desktop and browser — screenshots,
-  clicks, typing, app launch, websites, with safety and recovery rules."
+  clicks, typing, app launch, websites, games, with safety and recovery rules."
   Body guidance: when to activate; screenshot-first workflow; click/type/scroll/
   launch/switch; CLICKS ARE ATOMIC (see Phase 8 note) — pass the target straight to
   Click/Type and never pair Move with Click/Type in one parallel batch of computer
-  input tools; destructive-action consent rules; failure recovery (cancel with
+  input tools; GAMES section: game windows are canvas/DirectX drawn and keyboard-
+  driven — nearly no UIA tree, so verify with region screenshots + vision, read the
+  keybinds screen once and log it, drive keyboard-first (hotkeys → menu walking →
+  HUD coordinate clicks), sequential inputs with fixed waits between, emulate
+  key-holds as repeated presses at a measured cadence (no hold primitive), camera
+  look = mouse drag with explicit from_loc/duration, zoom = scroll at window
+  center, and NEVER automate gameplay in online/competitive/anti-cheat titles
+  (ToS/account-ban risk) — only single-player/offline/games the user owns; unsure
+  means ask first; destructive-action consent rules; failure recovery (cancel with
   Escape, close the app via the OS-equivalent window-close chord, restart app);
   never disable security controls. On macOS/Linux, adapt the skill's syntax to
   that OS's desktop-control MCP instead of Windows conventions.
