@@ -85,6 +85,12 @@ pair `Move` with `Click` in the same batch. The super prompt includes both.
 `project-onboarding`, `safe-install`, `windows-dev-env` — every agent can load the ones it
 needs; skills are advertised as id+description and loaded on demand.
 
+The `computer-use` skill also covers **controlling games**: game windows render to
+canvas/DirectX with almost no UI automation tree, so the skill prescribes pixel/vision
+verification, keyboard-first driving, hold-as-repeated-presses emulation, camera look via
+mouse drag, and a hard rule — never automate gameplay in online/competitive/anti-cheat
+titles (ToS/ban risk). Single-player/offline games the user owns only; ask when unsure.
+
 ---
 
 ## Repository layout
