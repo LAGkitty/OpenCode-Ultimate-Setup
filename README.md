@@ -87,8 +87,10 @@ needs; skills are advertised as id+description and loaded on demand.
 
 The `computer-use` skill also covers **controlling games**: game windows render to
 canvas/DirectX with almost no UI automation tree, so the skill prescribes pixel/vision
-verification, keyboard-first driving, hold-as-repeated-presses emulation, camera look via
-mouse drag, and a hard rule — never automate gameplay in online/competitive/anti-cheat
+verification, keyboard-first driving, hold-as-repeated-presses emulation, and probe-verified
+mouse-gesture semantics (Click = presses down+up in place; Move = pointer only; drag = button
+HELD while sweeping — a camera-orbit hazard in games, never used for positioning), plus a
+hard rule — never automate gameplay in online/competitive/anti-cheat
 titles (ToS/ban risk). Single-player/offline games the user owns only; ask when unsure.
 
 ---
