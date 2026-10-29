@@ -69,6 +69,16 @@ cap is smaller than OpenCode's own prompt size.
 - `blender` — optional, for DCC scene work
 - *(Roblox Studio MCP was intentionally not part of the public instructions in this repo)*
 
+**Mouse-click correctness note** (a real bug found in live use): injected clicks are
+*atomic* — the server places the cursor at the target and clicks in one gesture within ~5 ms.
+Two things made clicks *look* like they fired before the mouse moved: the visible AI-control
+ring indicator followed the cursor at only 20 FPS (50 ms behind), and agents batching
+`Move` + `Click` in one parallel block (the click fires instantly while the Move's animated
+travel paints afterwards). Fixes: keep the ring refresh interval small
+(`_REFRESH_SECONDS = 0.01` in Windows-MCP's `desktop/control_overlay.py`), and instruct
+agents to pass the target straight to `Click`/`Type` in separate sequential calls — never
+pair `Move` with `Click` in the same batch. The super prompt includes both.
+
 ### 6. Skills installed
 
 `computer-use`, `research-first`, `plan-and-execute`, `debug-and-verify`, `code-review`,
@@ -106,9 +116,17 @@ and runs the test suite an agent team should pass before it reports success.
 ## Requirements
 
 - OpenCode **v2.x** (`opencode --version`)
-- Windows 10/11 with PowerShell 5.1+ is fine; **macOS/Linux variants of the same idea work**
-  if you swap the Windows-MCP server for your OS's desktop-control MCP.
+- **Any OS for the team itself**: agents, commands, and core skills are plain Markdown +
+  the `opencode` CLI — OS-neutral.
+- **Windows gets the full desktop setup** (Windows-MCP desktop control, `windows-dev-env`
+  skill, the click-order patch — tested recipe: Win11 + PowerShell 5.1).
+- **macOS/Linux**: everything team-related works unchanged; desktop control needs an
+  OS-appropriate, verifiable MCP (or skip it and keep `playwright` for the browser), and the
+  `windows-dev-env` skill is omitted. The super prompt detects the OS in Phase 0 and adapts
+  automatically.
 - Node/npm for the Playwright MCP server.
+- Python/Go/Node — only needed for the mock end-to-end test **project**, which adapts to
+  whatever runtime the machine has.
 - **No API keys required** for the default team — the `opencode/*` free models are keyless.
   Existing keys (Google/Groq/Mistral/Nvidia/OpenRouter…) simply add extra fallback tiers.
 
