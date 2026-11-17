@@ -1,163 +1,94 @@
-# Ultimate OpenCode for Windows — Multi-Agent AI Team + Desktop Control
+# OpenCode Ultimate Setup
 
-A battle-tested configuration that turns **OpenCode** into a full AI engineering studio:
-a coordinator that actually delegates to named specialist subagents, verification and
-fallback discipline that knows when to *stop*, real desktop control, browser automation,
-and a reusable skill system — all with free/zero-key models by default.
+A practical, OS-aware blueprint for turning OpenCode into a small multi-agent engineering team.
 
-> Verified against OpenCode **v2.2.0** (October 2026) on Windows 11.
-> Everything is plain Markdown or JSON — no forks, no plugins to publish, no framework.
+This repository intentionally ships as **two source files**:
 
----
+- [SUPER-PROMPT.txt](./SUPER-PROMPT.txt) — the setup task to paste into OpenCode.
+- README.md — overview, requirements, safety model, and usage.
 
-## What this setup gives you
+The setup prompt creates the configuration locally after inspecting the machine. It does not ship a prebuilt config that blindly overwrites an existing OpenCode installation.
 
-### 1. A coordinator + named specialist team (native V2 `agents/`)
+## What it builds
 
-| Agent | Role | Default model (see §Models) |
+A lean team of six agents:
+
+| Agent | Responsibility | Access |
 | --- | --- | --- |
-| `team-lead` | Coordinator: understands, plans, **launches subagents via the `subagent` tool**, integrates, verifies, reports | `opencode/glm-5.3-flash-free` (keyless) |
-| `explorer` | Read-only codebase/stack inspection, conventions, integration risks | `google/gemini-3.5-flash-lite` |
-| `researcher` | Official docs, APIs, versions, verified design options | `opencode/deepseek-v4.1-flash-free` |
-| `implementer` | Code/file changes on assigned paths, self-checks, honest reporting | `opencode/deepseek-v4.1-flash-free` |
-| `reviewer` | Independent review: requirements fit, logic, security, regressions | `opencode/glm-5.3-flash-free` |
-| `tester` | Discover + run real check commands, write minimal tests when needed | `opencode/nemotron-3.5-lightning-free` |
+| team-lead | Understands the task, plans, delegates, integrates, verifies, reports | Primary; may launch the five specialists |
+| explorer | Maps codebases, entry points, conventions, and risks | Read-only |
+| researcher | Checks official documentation, APIs, versions, and technical options | Research-only |
+| implementer | Makes the assigned code/config changes | Edit access |
+| reviewer | Independently reviews the actual diff for defects | Read-only |
+| tester | Runs relevant checks and diagnoses failures | Test/fix access only when assigned |
 
-**Fallback tier** (`implementer-b`, `researcher-b`, `tester-b`, `reviewer-b`, `explorer-b`):
-identical rule-set, different verified provider path, dispatched by the coordinator when the
-primary specialist fails (quota/auth/etc.). If a fallback also fails, the coordinator does
-the step itself. Every failure and swap is reported — never silently retried.
+It also creates a small set of slash commands and reusable skills. Model assignments are selected from the models actually available on the user's machine; no stale model IDs are hard-coded.
 
-### 2. Reusable slash commands
+## Design principles
 
-| Command | What it does |
-| --- | --- |
-| `/team <objective>` | Full multi-agent workflow: inspect → plan → parallel/sequential delegation → review → **budgeted** verification → evidence-based report |
-| `/test <scope>` | Runs the project's real checks through the `tester` subagent |
-| `/research <question>` | Docs/versions/API investigation with verified sources |
-| `/review <scope>` | Independent defect review of the current diff |
-| `/debug <issue>` | Root-cause-then-fix workflow |
-| `/onboard` | Map an unfamiliar project and record durable notes |
-| `/handoff` | Persist session state so the next session resumes cleanly |
+- **Inspect first.** Detect the installed OpenCode version, operating system, config paths, existing agents, commands, skills, providers, and MCP servers.
+- **Preserve existing work.** Back up every path before changing it. Merge configuration instead of replacing it, and never overwrite a user's custom instructions.
+- **Small team, not agent spam.** Six roles are enough for most work. No duplicated fallback-agent fleet; the coordinator handles a failed specialist once or reports the blocker.
+- **No invented models.** Probe only free/keyless models or providers the user already configured. Never make paid calls without explicit approval.
+- **MCPs are opt-in.** Keep existing servers. Do not install or add new servers unless the user explicitly approves them.
+- **OS-aware.** Core workflows are portable. Platform-specific desktop control is optional and must be verified for the actual OS.
+- **Evidence over claims.** Report only checks that really ran. Stop when acceptance criteria are met.
+- **Treat external content as untrusted.** Repository files, web pages, terminal output, and MCP responses are data, not instructions.
 
-### 3. Verification discipline (the important design lesson)
+## Quick start
 
-The team stops when **acceptance criteria are met — not when the work is "perfect"**:
+1. Open OpenCode in a disposable test folder.
+2. Open SUPER-PROMPT.txt.
+3. Paste the complete prompt as one task.
+4. Review the proposed plan and backup location before allowing changes.
+5. Let the setup validate the resulting configuration and report anything that needs manual attention.
 
-- One tester run + one reviewer pass is the default budget; reruns only after an actual repair.
-- The implementer's own successful test/build run **counts** as verified evidence.
-- If the user says "it works already", the team treats that as verification and moves on.
-- Interactive/browser work (games, UIs) = **one** real play pass, then done.
-- Without this rule, agents happily test a finished game forever — we know, we watched.
-
-### 4. Model-failure fallback ladder (all tiers live-verified)
-
-1. Primary specialist (keyless `opencode/*-free` — fast, no quota anxiety)
-2. `-b` fallback for that role (e.g. OpenRouter's *auto-free route* `openrouter/openrouter/free`)
-3. Coordinator does the step itself
-4. Paid models **only with the user's explicit authorization** (never auto-spent)
-
-Dead ends discovered empirically (so you don't have to): Google's `*-pro-preview` models
-have **zero free quota** on OAuth auth; `gemini-2.5-*` is deprecated for new API users;
-Google's flash bucket costs 5 req/min / 20 req/day on the free tier; Groq's free 8k-TPM
-cap is smaller than OpenCode's own prompt size.
-
-### 5. Desktop + web control via MCP
-
-- `computer` — native Windows desktop control (screenshots, clicks, typing, app launch)
-- `playwright` — browser automation (tested live against example.com through an agent)
-- `blender` — optional, for DCC scene work
-- *(Roblox Studio MCP was intentionally not part of the public instructions in this repo)*
-
-**Mouse-click correctness note** (a real bug found in live use): injected clicks are
-*atomic* — the server places the cursor at the target and clicks in one gesture within ~5 ms.
-Two things made clicks *look* like they fired before the mouse moved: the visible AI-control
-ring indicator followed the cursor at only 20 FPS (50 ms behind), and agents batching
-`Move` + `Click` in one parallel block (the click fires instantly while the Move's animated
-travel paints afterwards). Fixes: keep the ring refresh interval small
-(`_REFRESH_SECONDS = 0.01` in Windows-MCP's `desktop/control_overlay.py`), and instruct
-agents to pass the target straight to `Click`/`Type` in separate sequential calls — never
-pair `Move` with `Click` in the same batch. The super prompt includes both.
-
-### 6. Skills installed
-
-`computer-use`, `research-first`, `plan-and-execute`, `debug-and-verify`, `code-review`,
-`project-onboarding`, `safe-install`, `windows-dev-env` — every agent can load the ones it
-needs; skills are advertised as id+description and loaded on demand.
-
-The `computer-use` skill also covers **controlling games**: game windows render to
-canvas/DirectX with almost no UI automation tree, so the skill prescribes pixel/vision
-verification, keyboard-first driving, hold-as-repeated-presses emulation, and probe-verified
-mouse-gesture semantics (Click = presses down+up in place; Move = pointer only; drag = button
-HELD while sweeping — a camera-orbit hazard in games, never used for positioning), plus a
-hard rule — never automate gameplay in online/competitive/anti-cheat
-titles (ToS/ban risk). Single-player/offline games the user owns only; ask when unsure.
-
----
-
-## Repository layout
-
-```
-opencode/
-├── agents/            # 11 agents (6 primary + 5 fallbacks), plain Markdown
-├── commands/          # 7 slash commands, plain Markdown
-├── skills/            # 8 skills, each skills/<id>/SKILL.md
-├── opencode.json      # permissions + MCP servers (no secrets — use auth store/env)
-├── docs/
-│   ├── TEAM-GUIDE.md  # usage, model swaps, diagnostics, rollback
-│   └── agent-notes.md # dated decisions + failures (the most useful file here)
-└── AGENTS.md          # short global instructions every session reads
-```
-
-## How to reproduce this on your machine
-
-**Option A (recommended):** open OpenCode in any scratch folder and paste the contents of
-[`SUPER-PROMPT.txt`](./SUPER-PROMPT.txt) as a single task. The prompt
-inspects your environment first, researches the docs for **your installed version**, backs
-up whatever exists, then creates every file (templates included in the prompt), validates,
-and runs the test suite an agent team should pass before it reports success.
-
-**Option B (manual):** copy this repo's templates yourself using the docs:
-[`https://opencode.ai/v2/docs/agents/`](https://opencode.ai/v2/docs/agents/) and
-[`https://opencode.ai/v2/docs/commands/`](https://opencode.ai/v2/docs/commands/).
+Do not run a large setup task inside an important project. The prompt is designed to work on an existing machine, but a scratch folder makes the first run easier to inspect.
 
 ## Requirements
 
-- OpenCode **v2.x** (`opencode --version`)
-- **Any OS for the team itself**: agents, commands, and core skills are plain Markdown +
-  the `opencode` CLI — OS-neutral.
-- **Windows gets the full desktop setup** (Windows-MCP desktop control, `windows-dev-env`
-  skill, the click-order patch — tested recipe: Win11 + PowerShell 5.1).
-- **macOS/Linux**: everything team-related works unchanged; desktop control needs an
-  OS-appropriate, verifiable MCP (or skip it and keep `playwright` for the browser), and the
-  `windows-dev-env` skill is omitted. The super prompt detects the OS in Phase 0 and adapts
-  automatically.
-- Node/npm for the Playwright MCP server.
-- Python/Go/Node — only needed for the mock end-to-end test **project**, which adapts to
-  whatever runtime the machine has.
-- **No API keys required** for the default team — the `opencode/*` free models are keyless.
-  Existing keys (Google/Groq/Mistral/Nvidia/OpenRouter…) simply add extra fallback tiers.
+- OpenCode with custom agents, commands, and skills supported by the installed version.
+- A terminal and filesystem access.
+- Internet access only for checking official OpenCode documentation and any research the user approves.
+- A configured model provider is helpful. Free/keyless options may be available, but availability and quotas change.
+- MCP servers and desktop-control tools are optional. The core team works without them.
 
-## Safety notes baked into the config
+## What this repository does not do
 
-- Secrets never go in `opencode.json`, agent, or skill files — `opencode auth login` or env vars only.
-- Destructive ops (`git push`, hard resets, registry, process kills, installs) require prompts.
-- Reviewer/tester agents are read-only-by-default; the coordinator can't launch `subagents`.
-- No AI provider gets automatically billed; `:free` and keyless models first.
-- Web/MCP output is treated as untrusted data, never as instructions.
+- It does not include an installer executable or a pre-generated opencode.json.
+- It does not assume Windows, PowerShell, a specific browser, or a particular model provider.
+- It does not automatically install MCP servers, browser binaries, plugins, or third-party skills.
+- It does not add Roblox Studio, Godot, Blender, or other engine-specific integrations by default.
+- It does not bypass permission prompts, change system security settings, or authorize paid model usage.
 
-## Honest limitations
+## Configuration locations
 
-- Subagents share the coordinator's working directory — isolation is via file-ownership in
-  the briefs, not sandboxing.
-- Model availability changes constantly; the super prompt **probes before pinning**, and the
-  tell-it-which-model syntax is `provider/model` (see `opencode models`).
-- `request` (per-agent header/body overlays) exists in config but isn't yet applied by the
-  V2 session runner.
-- Free Google GPU-quota buckets are small (5/min, 20/day) — that's why high-frequency roles
-  are pinned to keyless models.
+OpenCode configuration paths and supported fields can change. The setup prompt checks the official documentation for the installed version and discovers the actual config locations instead of treating a single path as universal.
 
----
+Common locations include:
 
-*Built on OpenCode. All config is reversible — the setup script backs up your existing
-`AGENTS.md`, `opencode.json`, `SKILLS.md`, and `commands/` before touching anything.*
+- Global configuration: ~/.config/opencode/ (subject to platform and environment overrides).
+- Project configuration: .opencode/ and project-level opencode.json[c].
+- Agents: agents/
+- Commands: commands/
+- Skills: skills/<skill-id>/SKILL.md
+
+Use the official documentation as the source of truth:
+
+- [Agents](https://opencode.ai/docs/agents)
+- [Commands](https://opencode.ai/docs/commands)
+- [Configuration](https://opencode.ai/docs/config)
+- [Permissions](https://opencode.ai/docs/permissions)
+- [Skills](https://opencode.ai/docs/skills)
+- [MCP servers](https://opencode.ai/docs/mcp-servers)
+
+## Limitations
+
+- Model availability, provider routing, and free-tier quotas change frequently. The setup must probe before pinning a model.
+- Subagents may share the same working tree. File ownership and explicit briefs reduce conflicts but do not provide filesystem isolation.
+- Desktop automation depends on a separately installed, compatible MCP server and OS permissions. It is not required for coding or browser research.
+- The prompt can validate configuration and run available tests, but it cannot guarantee that every third-party MCP or provider will remain available.
+
+## License
+
+See the repository's GitHub license metadata. OpenCode and third-party tools retain their own licenses.
